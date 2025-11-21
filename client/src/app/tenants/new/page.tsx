@@ -22,7 +22,12 @@ export default function NewTenantPage() {
         type: 'PF' as 'PF' | 'PJ',
         maritalStatus: '',
         profession: '',
-        address: ''
+        address: '',
+        spouseName: '',
+        spouseDoc: '',
+        spouseEmail: '',
+        spousePhone: '',
+        spouseProfession: ''
     });
     const [documents, setDocuments] = useState<Document[]>([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -166,6 +171,67 @@ export default function NewTenantPage() {
                             )}
                         </div>
                     </div>
+
+                    {/* Dados do Cônjuge */}
+                    {formData.type === 'PF' && (formData.maritalStatus === 'Casado(a)' || formData.maritalStatus === 'União Estável') && (
+                        <div className="border-b pb-4">
+                            <h2 className="text-lg font-semibold text-gray-700 mb-4">Dados do Cônjuge/Companheiro(a)</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        name="spouseName"
+                                        value={formData.spouseName}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">CPF</label>
+                                    <input
+                                        type="text"
+                                        name="spouseDoc"
+                                        value={formData.spouseDoc}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                                        placeholder="000.000.000-00"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Profissão</label>
+                                    <input
+                                        type="text"
+                                        name="spouseProfession"
+                                        value={formData.spouseProfession}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <input
+                                        type="email"
+                                        name="spouseEmail"
+                                        value={formData.spouseEmail}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Telefone</label>
+                                    <input
+                                        type="tel"
+                                        name="spousePhone"
+                                        value={formData.spousePhone}
+                                        onChange={handleChange}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                                        placeholder="(11) 99999-9999"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Contato e Endereço */}
                     <div className="border-b pb-4">

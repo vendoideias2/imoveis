@@ -34,6 +34,9 @@ export default function Sidebar() {
                 <Link href="/deals" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/deals')}`}>
                     💼 Deals
                 </Link>
+                <Link href="/users" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/users')}`}>
+                    👥 Usuários
+                </Link>
                 <Link href="/leads" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/leads')}`}>
                     Leads (Kanban)
                 </Link>

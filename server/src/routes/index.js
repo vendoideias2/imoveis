@@ -11,6 +11,7 @@ const contractRoutes = require('./contractRoutes');
 const inspectionRoutes = require('./inspectionRoutes');
 const uploadRoutes = require('./uploadRoutes');
 const statsRoutes = require('./statsRoutes');
+const userRoutes = require('./userRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/leads', leadRoutes);
@@ -23,6 +24,7 @@ router.use('/contracts', contractRoutes);
 router.use('/inspections', inspectionRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/stats', statsRoutes);
+router.use('/users', userRoutes);
 
 router.get('/status', (req, res) => {
     res.json({ status: 'API is functional', timestamp: new Date() });
