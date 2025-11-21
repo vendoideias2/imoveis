@@ -1,48 +1,80 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
+import CredentialsProvider from "next-auth/providers/credentials";
+
 const handler = NextAuth({
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
         }),
-    ],
-    pages: {
-        signIn: "/login",
-    },
-    callbacks: {
-        async signIn({ user, account, profile }) {
-            if (account?.provider === "google") {
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "text" },
+                password: { label: "Password", type: "password" }
+            },
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) return null;
+
                 try {
-                    // Check if user exists in our backend
-                    // We can't easily call the backend here if it's on a different port/process without a full URL
-                    // Ideally, we should have a backend endpoint to "upsert" the user
+                    const res = await fetch("http://localhost:3001/api/auth/login", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            email: credentials.email,
+                            password: credentials.password,
+                        }),
+                    });
 
-                    // For now, we will assume the backend handles this or we just allow login
-                    // In a real production app with separate backend, we'd call an API here
+                    const data = await res.json();
 
-                    // Example:
-                    // await fetch('http://localhost:3001/api/auth/google-callback', {
-                    //   method: 'POST',
-                    //   body: JSON.stringify({ user, account })
-                    // })
-
-                    return true;
+                    if (res.ok && data.user) {
+                        return {
+                            id: data.user.id,
+                            name: data.user.name,
+                            email: data.user.email,
+                            image: data.user.image,
+                            token: data.token // We'll need to persist this in the session
+                        };
+                    }
+                    return null;
                 } catch (error) {
-                    console.error("Error in google signin callback", error);
-                    return false;
+                    console.error("Login error:", error);
+                    return null;
                 }
             }
-            return true;
+        })
+    ],
+    pages: {
+        signIn: "/auth/login", // Correct path
+    },
+    callbacks: {
+        async jwt({ token, user }) {
+            if (user) {
+                token.accessToken = (user as any).token;
+                token.id = user.id;
+            }
+            return token;
         },
         async session({ session, token }) {
-            // Add user id to session if available
             if (session.user) {
-                // session.user.id = token.sub; // or fetch from backend
+                (session.user as any).id = token.id;
+                (session.user as any).accessToken = token.accessToken;
             }
             return session;
+        },
+        async signIn({ user, account, profile }) {
+            if (account?.provider === "google") {
+                // TODO: Implement backend sync for Google users if needed
+                return true;
+            }
+            return true;
         }
+    },
+    session: {
+        strategy: "jwt",
     },
 });
 

@@ -21,26 +21,20 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
+            const res = await signIn('credentials', {
+                email: formData.email,
+                password: formData.password,
+                redirect: false,
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                // Store token in localStorage
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
-                router.push('/');
+            if (res?.error) {
+                setError('Credenciais inválidas');
             } else {
-                setError(data.error || 'Erro ao fazer login');
+                router.push('/');
+                router.refresh(); // Refresh to update session state
             }
         } catch (err) {
-            setError('Erro de conexão com o servidor');
+            setError('Erro ao fazer login');
         } finally {
             setLoading(false);
         }

@@ -5,7 +5,7 @@ const ownerController = {
     // Create a new owner
     async create(req, res) {
         try {
-            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents } = req.body;
+            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents, spouseName, spouseDoc, spouseEmail, spousePhone, spouseProfession } = req.body;
 
             if (!name || !phone || !docNumber || !type) {
                 return res.status(400).json({ error: 'Name, phone, docNumber and type are required' });
@@ -21,6 +21,11 @@ const ownerController = {
                     maritalStatus,
                     profession,
                     address,
+                    spouseName,
+                    spouseDoc,
+                    spouseEmail,
+                    spousePhone,
+                    spouseProfession,
                     documents: documents || []
                 }
             });
@@ -82,7 +87,7 @@ const ownerController = {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents } = req.body;
+            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents, spouseName, spouseDoc, spouseEmail, spousePhone, spouseProfession } = req.body;
 
             const owner = await prisma.owner.update({
                 where: { id },
@@ -95,6 +100,11 @@ const ownerController = {
                     maritalStatus,
                     profession,
                     address,
+                    spouseName,
+                    spouseDoc,
+                    spouseEmail,
+                    spousePhone,
+                    spouseProfession,
                     documents
                 }
             });

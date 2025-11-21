@@ -89,6 +89,14 @@ model Owner {
   maritalStatus String?
   profession    String?
   address       String?
+  
+  // Spouse Data
+  spouseName    String?
+  spouseDoc     String?
+  spouseEmail   String?
+  spousePhone   String?
+  spouseProfession String?
+
   documents     Json?    // Array of { url, name, type }
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -107,6 +115,14 @@ model Tenant {
   maritalStatus String?
   profession    String?
   address       String?
+
+  // Spouse Data
+  spouseName    String?
+  spouseDoc     String?
+  spouseEmail   String?
+  spousePhone   String?
+  spouseProfession String?
+
   documents     Json?    // Array of { url, name, type }
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

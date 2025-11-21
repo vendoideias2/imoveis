@@ -5,7 +5,7 @@ const tenantController = {
     // Create a new tenant
     async create(req, res) {
         try {
-            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents } = req.body;
+            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents, spouseName, spouseDoc, spouseEmail, spousePhone, spouseProfession } = req.body;
 
             if (!name || !phone || !docNumber || !type) {
                 return res.status(400).json({ error: 'Name, phone, docNumber and type are required' });
@@ -21,6 +21,11 @@ const tenantController = {
                     maritalStatus,
                     profession,
                     address,
+                    spouseName,
+                    spouseDoc,
+                    spouseEmail,
+                    spousePhone,
+                    spouseProfession,
                     documents: documents || []
                 }
             });
@@ -89,7 +94,7 @@ const tenantController = {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents } = req.body;
+            const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents, spouseName, spouseDoc, spouseEmail, spousePhone, spouseProfession } = req.body;
 
             const tenant = await prisma.tenant.update({
                 where: { id },
@@ -102,6 +107,11 @@ const tenantController = {
                     maritalStatus,
                     profession,
                     address,
+                    spouseName,
+                    spouseDoc,
+                    spouseEmail,
+                    spousePhone,
+                    spouseProfession,
                     documents
                 }
             });

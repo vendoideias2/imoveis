@@ -19,23 +19,23 @@ export default function Sidebar() {
                 <Link href="/" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/')}`}>
                     Dashboard
                 </Link>
-                <Link href="/leads" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/leads')}`}>
-                    Leads (Kanban)
-                </Link>
                 <Link href="/properties" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/properties')}`}>
                     Imóveis
                 </Link>
-                <Link href="/tenants" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/tenants')}`}>
-                    Inquilinos
-                </Link>
                 <Link href="/owners" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/owners')}`}>
                     Proprietários
+                </Link>
+                <Link href="/tenants" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/tenants')}`}>
+                    Inquilinos
                 </Link>
                 <Link href="/appointments" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/appointments')}`}>
                     Agenda
                 </Link>
                 <Link href="/deals" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/deals')}`}>
                     💼 Deals
+                </Link>
+                <Link href="/leads" className={`block py-2.5 px-4 rounded-lg transition duration-200 ${isActive('/leads')}`}>
+                    Leads (Kanban)
                 </Link>
             </nav>
 
