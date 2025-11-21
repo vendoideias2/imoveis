@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  AGENT
+}
+
+enum LeadStatus {
+  NEW
+  IN_PROGRESS
+  VISIT_SCHEDULED
+  PROPOSAL
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  RENTED
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  LAND
+  COMMERCIAL
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(AGENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leads        Lead[]
+  appointments Appointment[]
+  deals        Deal[]
+}
+
+model Lead {
+  id        String     @id @default(uuid())
+  name      String
+  email     String?
+  phone     String
+  status    LeadStatus @default(NEW)
+  source    String?    // Facebook, Zap, Site
+  tags      String[]
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  agentId String?
+  agent   User?   @relation(fields: [agentId], references: [id])
+
+  appointments Appointment[]
+  deals        Deal[]
+}
+
+model Owner {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String
+  docNumber String   // CPF or CNPJ
+  type      String   // PF or PJ
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  properties Property[]
+}
+
+model Property {
+  id             String         @id @default(uuid())
+  title          String
+  description    String?
+  type           PropertyType
+  status         PropertyStatus @default(AVAILABLE)
+  price          Decimal
+  condoPrice     Decimal?
+  iptuPrice      Decimal?
+  areaTotal      Float?
+  areaUseful     Float?
+  bedrooms       Int?
+  bathrooms      Int?
+  parkingSpaces  Int?
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  registrationId String?        // Matrícula
+  features       String[]
+  images         String[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  ownerId String
+  owner   Owner  @relation(fields: [ownerId], references: [id])
+
+  deals       Deal[]
+  inspections Inspection[]
+  appointments Appointment[]
+}
+
+model Appointment {
+  id        String   @id @default(uuid())
+  date      DateTime
+  notes     String?
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id])
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id])
+  agentId    String
+  agent      User     @relation(fields: [agentId], references: [id])
+}
+
+model Deal {
+  id        String   @id @default(uuid())
+  value     Decimal
+  commission Decimal?
+  status    String   // Draft, Sent, Signed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  agentId    String
+  agent      User     @relation(fields: [agentId], references: [id])
+}
+
+model Inspection {
+  id        String   @id @default(uuid())
+  date      DateTime
+  status    String   // Scheduled, Completed
+  reportUrl String?  // PDF link
+  items     Json?    // Checklist items
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+}
