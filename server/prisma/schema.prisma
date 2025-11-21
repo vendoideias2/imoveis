@@ -39,11 +39,18 @@ enum PropertyType {
   COMMERCIAL
 }
 
+enum ListingType {
+  SALE
+  RENT
+  BOTH
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String
-  password  String
+  password  String?
+  image     String?
   role      Role     @default(AGENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,16 +80,38 @@ model Lead {
 }
 
 model Owner {
-  id        String   @id @default(uuid())
-  name      String
-  email     String?
-  phone     String
-  docNumber String   // CPF or CNPJ
-  type      String   // PF or PJ
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  name          String
+  email         String?
+  phone         String
+  docNumber     String   // CPF or CNPJ
+  type          String   // PF or PJ
+  maritalStatus String?
+  profession    String?
+  address       String?
+  documents     Json?    // Array of { url, name, type }
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   properties Property[]
+  contracts  Contract[]
+}
+
+model Tenant {
+  id            String   @id @default(uuid())
+  name          String
+  email         String?
+  phone         String
+  docNumber     String   // CPF or CNPJ
+  type          String   // PF or PJ
+  maritalStatus String?
+  profession    String?
+  address       String?
+  documents     Json?    // Array of { url, name, type }
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  contracts Contract[]
 }
 
 model Property {
@@ -106,6 +135,8 @@ model Property {
   registrationId String?        // Matrícula
   features       String[]
   images         String[]
+  documents      Json?          // Array of { url, name, type }
+  listingType    ListingType    @default(SALE)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -115,6 +146,26 @@ model Property {
   deals       Deal[]
   inspections Inspection[]
   appointments Appointment[]
+  contracts    Contract[]
+}
+
+model Contract {
+  id           String   @id @default(uuid())
+  startDate    DateTime
+  endDate      DateTime
+  value        Decimal
+  depositValue Decimal?
+  status       String   // ACTIVE, ENDED, CANCELED
+  documents    Json?    // Array of { url, name, type }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  ownerId    String
+  owner      Owner    @relation(fields: [ownerId], references: [id])
 }
 
 model Appointment {
@@ -153,8 +204,8 @@ model Inspection {
   id        String   @id @default(uuid())
   date      DateTime
   status    String   // Scheduled, Completed
-  reportUrl String?  // PDF link
   items     Json?    // Checklist items
+  documents Json?    // Array of { url, name, type }
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

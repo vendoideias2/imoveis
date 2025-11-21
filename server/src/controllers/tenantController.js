@@ -1,8 +1,8 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-const ownerController = {
-    // Create a new owner
+const tenantController = {
+    // Create a new tenant
     async create(req, res) {
         try {
             const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents } = req.body;
@@ -11,7 +11,7 @@ const ownerController = {
                 return res.status(400).json({ error: 'Name, phone, docNumber and type are required' });
             }
 
-            const owner = await prisma.owner.create({
+            const tenant = await prisma.tenant.create({
                 data: {
                     name,
                     email,
@@ -25,66 +25,73 @@ const ownerController = {
                 }
             });
 
-            res.status(201).json(owner);
+            res.status(201).json(tenant);
         } catch (error) {
-            console.error('Error creating owner:', error);
-            res.status(500).json({ error: 'Failed to create owner' });
+            console.error('Error creating tenant:', error);
+            res.status(500).json({ error: 'Failed to create tenant' });
         }
     },
 
-    // Get all owners
+    // Get all tenants
     async getAll(req, res) {
         try {
-            const owners = await prisma.owner.findMany({
+            const tenants = await prisma.tenant.findMany({
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    properties: {
+                    contracts: {
                         select: {
                             id: true,
-                            title: true,
-                            status: true
+                            status: true,
+                            property: {
+                                select: {
+                                    title: true
+                                }
+                            }
                         }
                     }
                 }
             });
-            res.json(owners);
+            res.json(tenants);
         } catch (error) {
-            console.error('Error fetching owners:', error);
-            res.status(500).json({ error: 'Failed to fetch owners' });
+            console.error('Error fetching tenants:', error);
+            res.status(500).json({ error: 'Failed to fetch tenants' });
         }
     },
 
-    // Get owner by ID
+    // Get tenant by ID
     async getById(req, res) {
         try {
             const { id } = req.params;
 
-            const owner = await prisma.owner.findUnique({
+            const tenant = await prisma.tenant.findUnique({
                 where: { id },
                 include: {
-                    properties: true,
-                    contracts: true
+                    contracts: {
+                        include: {
+                            property: true
+                        }
+                    }
                 }
             });
 
-            if (!owner) {
-                return res.status(404).json({ error: 'Owner not found' });
+            if (!tenant) {
+                return res.status(404).json({ error: 'Tenant not found' });
             }
 
-            res.json(owner);
+            res.json(tenant);
         } catch (error) {
-            console.error('Error fetching owner:', error);
-            res.status(500).json({ error: 'Failed to fetch owner' });
+            console.error('Error fetching tenant:', error);
+            res.status(500).json({ error: 'Failed to fetch tenant' });
         }
     },
 
-    // Update owner
+    // Update tenant
     async update(req, res) {
         try {
             const { id } = req.params;
             const { name, email, phone, docNumber, type, maritalStatus, profession, address, documents } = req.body;
 
-            const owner = await prisma.owner.update({
+            const tenant = await prisma.tenant.update({
                 where: { id },
                 data: {
                     name,
@@ -99,42 +106,42 @@ const ownerController = {
                 }
             });
 
-            res.json(owner);
+            res.json(tenant);
         } catch (error) {
-            console.error('Error updating owner:', error);
-            res.status(500).json({ error: 'Failed to update owner' });
+            console.error('Error updating tenant:', error);
+            res.status(500).json({ error: 'Failed to update tenant' });
         }
     },
 
-    // Delete owner
+    // Delete tenant
     async delete(req, res) {
         try {
             const { id } = req.params;
 
-            // Check if owner has properties
-            const owner = await prisma.owner.findUnique({
+            // Check if tenant has contracts
+            const tenant = await prisma.tenant.findUnique({
                 where: { id },
                 include: {
-                    properties: true
+                    contracts: true
                 }
             });
 
-            if (owner && owner.properties.length > 0) {
+            if (tenant && tenant.contracts.length > 0) {
                 return res.status(400).json({
-                    error: 'Cannot delete owner with associated properties'
+                    error: 'Cannot delete tenant with associated contracts'
                 });
             }
 
-            await prisma.owner.delete({
+            await prisma.tenant.delete({
                 where: { id }
             });
 
-            res.json({ message: 'Owner deleted successfully' });
+            res.json({ message: 'Tenant deleted successfully' });
         } catch (error) {
-            console.error('Error deleting owner:', error);
-            res.status(500).json({ error: 'Failed to delete owner' });
+            console.error('Error deleting tenant:', error);
+            res.status(500).json({ error: 'Failed to delete tenant' });
         }
     }
 };
 
-module.exports = ownerController;
+module.exports = tenantController;

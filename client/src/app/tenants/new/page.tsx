@@ -12,7 +12,7 @@ interface Document {
     size: number;
 }
 
-export default function NewOwnerPage() {
+export default function NewTenantPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
         name: '',
@@ -30,7 +30,7 @@ export default function NewOwnerPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/owners', {
+            const res = await fetch('/api/tenants', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -42,9 +42,9 @@ export default function NewOwnerPage() {
             });
 
             if (res.ok) {
-                router.push('/owners');
+                router.push('/tenants');
             } else {
-                alert('Erro ao criar proprietário');
+                alert('Erro ao criar inquilino');
             }
         } catch (error) {
             console.error('Error submitting form', error);
@@ -88,7 +88,7 @@ export default function NewOwnerPage() {
 
     return (
         <Layout>
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Novo Proprietário</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">Novo Inquilino</h1>
 
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow max-w-4xl">
                 <div className="grid grid-cols-1 gap-6">
@@ -255,7 +255,7 @@ export default function NewOwnerPage() {
                             type="submit"
                             className="px-4 py-2 bg-primary text-white rounded-md hover:bg-purple-800"
                         >
-                            Salvar Proprietário
+                            Salvar Inquilino
                         </button>
                     </div>
                 </div>

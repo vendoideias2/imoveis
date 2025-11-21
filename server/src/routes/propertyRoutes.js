@@ -5,6 +5,7 @@ const { imageUpload, handleUploadError } = require('../middleware/uploadMiddlewa
 router.post('/', propertyController.create);
 router.get('/', propertyController.getAll);
 router.get('/:id', propertyController.getById);
+router.put('/:id', propertyController.update);
 
 // Image management routes
 router.post('/:id/images', imageUpload.array('images', 10), handleUploadError, propertyController.uploadImages);

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+import { signIn } from 'next-auth/react';
+
 export default function LoginPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -45,8 +47,7 @@ export default function LoginPage() {
     };
 
     const handleGoogleLogin = () => {
-        // TODO: Implement Google OAuth
-        alert('Login com Google será implementado em breve!');
+        signIn('google', { callbackUrl: '/' });
     };
 
     return (

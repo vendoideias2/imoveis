@@ -1,8 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { useRouter } from 'next/navigation';
+import FileUploader from '@/components/ui/FileUploader';
+
+interface Document {
+    url: string;
+    filename: string;
+    mimetype: string;
+    size: number;
+}
+
+interface Owner {
+    id: string;
+    name: string;
+}
 
 export default function NewPropertyPage() {
     const router = useRouter();
@@ -10,14 +23,36 @@ export default function NewPropertyPage() {
         title: '',
         price: '',
         type: 'HOUSE',
-        ownerId: 'default-owner',
+        listingType: 'SALE',
+        ownerId: '',
         description: '',
         bedrooms: '',
         areaUseful: '',
         city: ''
     });
+    const [owners, setOwners] = useState<Owner[]>([]);
     const [images, setImages] = useState<File[]>([]);
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [documents, setDocuments] = useState<Document[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+
+    useEffect(() => {
+        fetchOwners();
+    }, []);
+
+    const fetchOwners = async () => {
+        try {
+            const res = await fetch('/api/owners');
+            if (res.ok) {
+                const data = await res.json();
+                setOwners(data);
+                if (data.length > 0) {
+                    setFormData(prev => ({ ...prev, ownerId: data[0].id }));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching owners', error);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,7 +63,10 @@ export default function NewPropertyPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    documents
+                }),
             });
 
             if (res.ok) {
@@ -60,33 +98,49 @@ export default function NewPropertyPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        setImages([...images, ...files]);
-
-        // Create previews
-        files.forEach((file) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreviews((prev) => [...prev, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
-        });
+    const handleImageUpload = (files: File[]) => {
+        setImages(files);
     };
 
-    const removeImage = (index: number) => {
-        setImages(images.filter((_, i) => i !== index));
-        setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+    const handleDocumentUpload = async (files: File[]) => {
+        setIsUploading(true);
+        const uploadFormData = new FormData();
+        files.forEach(file => {
+            uploadFormData.append('files', file);
+        });
+
+        try {
+            const res = await fetch('/api/upload/multiple', {
+                method: 'POST',
+                body: uploadFormData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setDocuments(prev => [...prev, ...data.files]);
+            } else {
+                alert('Erro ao fazer upload dos documentos');
+            }
+        } catch (error) {
+            console.error('Error uploading documents', error);
+            alert('Erro ao fazer upload dos documentos');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const removeDocument = (index: number) => {
+        setDocuments(prev => prev.filter((_, i) => i !== index));
     };
 
     return (
         <Layout>
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Novo Imóvel</h1>
 
-            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow max-w-2xl">
+            <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow max-w-4xl">
                 <div className="grid grid-cols-1 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Título do Anúncio</label>
+                        <label className="block text-sm font-medium text-gray-700">Título do Anúncio *</label>
                         <input
                             type="text"
                             name="title"
@@ -97,9 +151,24 @@ export default function NewPropertyPage() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Preço (R$)</label>
+                            <label className="block text-sm font-medium text-gray-700">Proprietário *</label>
+                            <select
+                                name="ownerId"
+                                value={formData.ownerId}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                                required
+                            >
+                                <option value="">Selecione um proprietário</option>
+                                {owners.map(owner => (
+                                    <option key={owner.id} value={owner.id}>{owner.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Preço (R$) *</label>
                             <input
                                 type="number"
                                 name="price"
@@ -110,7 +179,20 @@ export default function NewPropertyPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Tipo</label>
+                            <label className="block text-sm font-medium text-gray-700">Finalidade *</label>
+                            <select
+                                name="listingType"
+                                value={formData.listingType}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                            >
+                                <option value="SALE">Venda</option>
+                                <option value="RENT">Aluguel</option>
+                                <option value="BOTH">Venda e Aluguel</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Tipo do Imóvel *</label>
                             <select
                                 name="type"
                                 value={formData.type}
@@ -123,9 +205,19 @@ export default function NewPropertyPage() {
                                 <option value="COMMERCIAL">Comercial</option>
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                            <input
+                                type="text"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleChange}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
+                            />
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Quartos</label>
                             <input
@@ -146,16 +238,6 @@ export default function NewPropertyPage() {
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Cidade</label>
-                            <input
-                                type="text"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 p-2 border"
-                            />
-                        </div>
                     </div>
 
                     <div>
@@ -171,39 +253,38 @@ export default function NewPropertyPage() {
 
                     {/* Image Upload Section */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Fotos do Imóvel</label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={handleImageChange}
-                                className="hidden"
-                                id="image-upload"
-                            />
-                            <label htmlFor="image-upload" className="cursor-pointer">
-                                <div className="text-gray-600">
-                                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <p className="mt-2 text-sm">Clique para selecionar imagens</p>
-                                    <p className="text-xs text-gray-500">PNG, JPG, GIF até 5MB</p>
-                                </div>
-                            </label>
-                        </div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Fotos do Imóvel</h3>
+                        <FileUploader
+                            onUpload={handleImageUpload}
+                            accept="image/*"
+                            label="Upload de Fotos"
+                            multiple={true}
+                        />
+                    </div>
 
-                        {/* Image Previews */}
-                        {imagePreviews.length > 0 && (
-                            <div className="grid grid-cols-4 gap-4 mt-4">
-                                {imagePreviews.map((preview, index) => (
-                                    <div key={index} className="relative">
-                                        <img src={preview} alt={`Preview ${index}`} className="w-full h-24 object-cover rounded" />
+                    {/* Documents Upload Section */}
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Documentos do Imóvel</h3>
+                        <FileUploader
+                            onUpload={handleDocumentUpload}
+                            accept="application/pdf,image/*"
+                            label="Upload de Documentos (Escritura, IPTU, etc)"
+                            multiple={true}
+                        />
+                        {documents.length > 0 && (
+                            <div className="mt-2 grid grid-cols-1 gap-2">
+                                {documents.map((doc, index) => (
+                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
+                                        <div className="flex items-center space-x-3">
+                                            <span className="text-gray-500">📄</span>
+                                            <span className="text-sm font-medium text-gray-700">{doc.filename}</span>
+                                        </div>
                                         <button
                                             type="button"
-                                            onClick={() => removeImage(index)}
-                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                                            onClick={() => removeDocument(index)}
+                                            className="text-red-500 hover:text-red-700 text-sm"
                                         >
-                                            ×
+                                            Remover
                                         </button>
                                     </div>
                                 ))}
@@ -211,7 +292,7 @@ export default function NewPropertyPage() {
                         )}
                     </div>
 
-                    <div className="flex justify-end space-x-3">
+                    <div className="flex justify-end space-x-3 pt-4">
                         <button
                             type="button"
                             onClick={() => router.back()}

@@ -11,6 +11,7 @@ interface Property {
     title: string;
     description: string;
     type: string;
+    listingType: string;
     status: string;
     price: number;
     condoPrice?: number;
@@ -159,6 +160,19 @@ export default function EditPropertyPage({ params }: { params: { id: string } })
                                     className="w-full border rounded-lg px-4 py-2"
                                     rows={4}
                                 />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Finalidade *</label>
+                                <select
+                                    value={property.listingType}
+                                    onChange={(e) => setProperty({ ...property, listingType: e.target.value })}
+                                    className="w-full border rounded-lg px-4 py-2"
+                                >
+                                    <option value="SALE">Venda</option>
+                                    <option value="RENT">Aluguel</option>
+                                    <option value="BOTH">Venda e Aluguel</option>
+                                </select>
                             </div>
 
                             <div>

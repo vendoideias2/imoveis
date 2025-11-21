@@ -23,17 +23,17 @@ const propertyStorage = multer.diskStorage({
     }
 });
 
-// Configure storage for deal documents
-const dealStorage = multer.diskStorage({
+// Configure storage for generic documents
+const documentsStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, '../../uploads/deals');
+        const uploadDir = path.join(__dirname, '../../uploads/documents');
         ensureDirectoryExists(uploadDir);
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.originalname);
-        cb(null, 'deal-' + uniqueSuffix + ext);
+        cb(null, 'doc-' + uniqueSuffix + ext);
     }
 });
 
@@ -74,9 +74,18 @@ const imageUpload = multer({
     }
 });
 
-// Document upload middleware (max 10MB per file)
+// Deal document upload middleware (max 10MB per file)
 const documentUpload = multer({
     storage: dealStorage,
+    fileFilter: documentFileFilter,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB
+    }
+});
+
+// Generic document upload middleware (max 10MB per file)
+const genericUpload = multer({
+    storage: documentsStorage,
     fileFilter: documentFileFilter,
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB
@@ -117,5 +126,6 @@ const handleUploadError = (err, req, res, next) => {
 module.exports = {
     imageUpload,
     documentUpload,
+    genericUpload,
     handleUploadError
 };

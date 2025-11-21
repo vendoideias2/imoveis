@@ -7,7 +7,7 @@ const propertyController = {
     async create(req, res) {
         try {
             const {
-                title, description, type, price,
+                title, description, type, listingType, price,
                 condoPrice, iptuPrice, areaTotal, areaUseful,
                 bedrooms, bathrooms, parkingSpaces,
                 address, city, state, zipCode,
@@ -21,7 +21,7 @@ const propertyController = {
 
             const property = await prisma.property.create({
                 data: {
-                    title, description, type,
+                    title, description, type, listingType,
                     price: parseFloat(price),
                     condoPrice: condoPrice ? parseFloat(condoPrice) : null,
                     iptuPrice: iptuPrice ? parseFloat(iptuPrice) : null,
@@ -31,7 +31,8 @@ const propertyController = {
                     bathrooms: bathrooms ? parseInt(bathrooms) : null,
                     parkingSpaces: parkingSpaces ? parseInt(parkingSpaces) : null,
                     address, city, state, zipCode,
-                    ownerId
+                    ownerId,
+                    documents: req.body.documents || []
                 }
             });
 
@@ -45,10 +46,11 @@ const propertyController = {
     // Get all properties with filters
     async getAll(req, res) {
         try {
-            const { type, city, minPrice, maxPrice } = req.query;
+            const { type, listingType, city, minPrice, maxPrice } = req.query;
 
             const where = {};
             if (type) where.type = type;
+            if (listingType) where.listingType = listingType;
             if (city) where.city = { contains: city, mode: 'insensitive' };
             if (minPrice || maxPrice) {
                 where.price = {};
@@ -80,7 +82,9 @@ const propertyController = {
             const property = await prisma.property.findUnique({
                 where: { id },
                 include: {
-                    owner: true
+                    owner: true,
+                    contracts: true,
+                    inspections: true
                 }
             });
 
@@ -91,6 +95,44 @@ const propertyController = {
             res.json(property);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch property' });
+        }
+    },
+
+    // Update property
+    async update(req, res) {
+        try {
+            const { id } = req.params;
+            const {
+                title, description, type, listingType, price,
+                condoPrice, iptuPrice, areaTotal, areaUseful,
+                bedrooms, bathrooms, parkingSpaces,
+                address, city, state, zipCode,
+                ownerId, status, documents
+            } = req.body;
+
+            const property = await prisma.property.update({
+                where: { id },
+                data: {
+                    title, description, type, listingType,
+                    price: price ? parseFloat(price) : undefined,
+                    condoPrice: condoPrice ? parseFloat(condoPrice) : undefined,
+                    iptuPrice: iptuPrice ? parseFloat(iptuPrice) : undefined,
+                    areaTotal: areaTotal ? parseFloat(areaTotal) : undefined,
+                    areaUseful: areaUseful ? parseFloat(areaUseful) : undefined,
+                    bedrooms: bedrooms ? parseInt(bedrooms) : undefined,
+                    bathrooms: bathrooms ? parseInt(bathrooms) : undefined,
+                    parkingSpaces: parkingSpaces ? parseInt(parkingSpaces) : undefined,
+                    address, city, state, zipCode,
+                    ownerId,
+                    status,
+                    documents
+                }
+            });
+
+            res.json(property);
+        } catch (error) {
+            console.error('Error updating property:', error);
+            res.status(500).json({ error: 'Failed to update property' });
         }
     },
 
