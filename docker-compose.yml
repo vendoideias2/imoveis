@@ -5,11 +5,14 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - API_URL=http://server:3001
+      - API_URL=${API_URL:-http://server:3001}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
     depends_on:
       - server
 
@@ -17,6 +20,7 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+    restart: always
     ports:
       - "3001:3001"
     environment:
@@ -25,3 +29,4 @@ services:
       - PORT=3001
     volumes:
       - ./server/uploads:/app/uploads
+
